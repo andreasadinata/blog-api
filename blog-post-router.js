@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', jsonParser, (req, res) => {
-    const requiredFields = ['title', 'content', 'author', 'date'];
+    const requiredFields = ['title', 'content', 'author', 'publishDate'];
     for (let i = 0; i < requiredFields.length; i++) {
         const field = requiredFields[i];
         if (!(field in req.body)) {
@@ -42,31 +42,53 @@ router.delete('/:id', (req, res) => {
 });
 
 router.put('/:id', jsonParser, (req, res) => {
-    const requiredFields = ['title', 'content', 'author', 'date'];
-    for (let i = 0; i < requiredFields.length; i++) {
-        const field = requiredFields[i];
-        if (!(field in req.body)) {
-            const message = `Missing \`${field}\` in request body`;
-            console.error(message);
-            return res.status(400).send(message);
-        }
-    }
-    if (req.params.id !== req.body.id) {
-        const message = (
-            `Request path id (${req.params.id}) and request body id `
-            `(${req.body.id}) must match`);
-        console.error(message);
-        return res.status(400).send(message);
-    }
-    const updatedItem = BlogPosts.update({
-        id: req.params.id,
-        title: req.body.title,
-        content: req.body.content,
-        author: req.body.author,
-        date: req.body.date
-    });
+    console.log("put body id = ", req.body.id);
+    const requiredFields = ['title', 'content', 'author', 'publishDate'];
+    //    for (let i = 0; i < requiredFields.length; i++) {
+    //        const field = requiredFields[i];
+    //        if (!(field in req.body)) {
+    //            const message = `Missing \`${field}\` in request body`;
+    //            console.error(message);
+    //            return res.status(400).send(message);
+    //        }
+    //    }
+    //    if (req.params.id !== req.body.id) {
+    //        const message = (
+    //            `Request path id (${req.params.id}) and request body id `
+    //            `(${req.body.id}) must match`);
+    //        console.error(message);
+    //        return res.status(400).send(message);
+    //    }
 
-    res.status(204).json(updatedItem);
+    BlogPosts.get(function (err, items) {
+        if (err) {
+            return res.status(404).json({
+                message: 'Item not found.'
+            });
+        }
+        BlogPosts.update({
+            _id: req.body.id
+        }, {
+            $set: {
+                title: req.body.title,
+                content: req.body.content,
+                author: req.body.author,
+                publishDate: req.body.publishDate
+            }
+        }, function () {
+            res.status(201).json(items);
+        });
+
+    });
+    //    const updatedItem = BlogPosts.update({
+    //        id: req.body.id,
+    //        title: req.body.title,
+    //        content: req.body.content,
+    //        author: req.body.author,
+    //        publishDate: req.body.publishDate
+    //    });
+    //
+    //    res.status(204).json(updatedItem);
 });
 
 module.exports = router;
